@@ -6,6 +6,7 @@ using Hermes.Classes;
 using Hermes.Events;
 using Hermes.Handlers;
 using Hermes.Interfaces;
+using Hermes.Utilities;
 
 namespace Hermes;
 
@@ -65,7 +66,7 @@ public class Server
 
     private void HandleClientConnected(IWebSocketConnection socket)
     {
-        Console.WriteLine($"Client connected: {socket.ConnectionInfo.Id}");
+        Logger.Info($"Client connected: {socket.ConnectionInfo.Id}");
         
         var starterClient = new SocketClientDefinition
         {
@@ -79,7 +80,7 @@ public class Server
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error handling client connection: {ex.Message}");
+            Logger.Error($"Error handling client connection: {ex.Message}");
             EventManager.OnErrorOccurred(new Events.ErrorEventArgs
             {
                 Client = starterClient,
@@ -103,7 +104,7 @@ public class Server
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error handling client disconnection: {ex.Message}");
+            Logger.Error($"Error handling client disconnection: {ex.Message}");
             EventManager.OnErrorOccurred(new Events.ErrorEventArgs
             {
                 Client = new SocketClientDefinition(),
@@ -115,7 +116,7 @@ public class Server
     
     private async Task HandleMessageReceived(IWebSocketConnection socket, string message)
     {
-        Console.WriteLine($"Received message: {message}");
+        Logger.Info($"Received message: {message}");
         
         try
         {
@@ -134,7 +135,7 @@ public class Server
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error handling message: {ex.Message}");
+            Logger.Error($"Error handling message: {ex.Message}");
             EventManager.OnErrorOccurred(new Events.ErrorEventArgs
             {
                 Client = new SocketClientDefinition(),
@@ -151,7 +152,7 @@ public class Server
             _clientManager.TryGetClient(socket.ConnectionInfo.Id, out SocketClientDefinition client);
             if (client != null)
             {
-                Console.WriteLine($"Error from client {socket.ConnectionInfo.Id}: {ex.Message}");
+                Logger.Error($"Error from client {socket.ConnectionInfo.Id}: {ex.Message}");
                 EventManager.OnErrorOccurred(new Events.ErrorEventArgs
                 {
                     Client = client,
@@ -170,7 +171,7 @@ public class Server
         {
             if (!handlerEx.Message.Contains("An existing connection was forcibly closed by the remote host"))
             {
-                Console.WriteLine($"Error in error handler: {handlerEx.Message}");
+                Logger.Error($"Error in error handler: {handlerEx.Message}");
                 EventManager.OnErrorOccurred(new Events.ErrorEventArgs
                 {
                     Error = handlerEx,

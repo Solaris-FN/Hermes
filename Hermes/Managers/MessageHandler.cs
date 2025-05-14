@@ -3,6 +3,7 @@ using Fleck;
 using Hermes.Classes;
 using Hermes.Events;
 using Hermes.Interfaces;
+using Hermes.Utilities;
 
 namespace Hermes.Handlers;
 
@@ -43,7 +44,7 @@ public class MessageHandler
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to parse XML message: {ex.Message}");
+            Logger.Error($"Failed to parse XML message: {ex.Message}");
             return false;
         }
     }
@@ -56,11 +57,11 @@ public class MessageHandler
         
         if (!Globals.MessageHandlers.TryGetValue(message.Type, out var handler))
         {
-            Console.WriteLine($"No handler found for root element: {message.Type}");
+            Logger.Warning($"No handler found for root element: {message.Type}");
             return;
         }
         
-        Console.WriteLine($"Requested MessageType: {message.Type}");
+        Logger.Info($"Requested MessageType: {message.Type}");
         
         try
         {
@@ -79,7 +80,7 @@ public class MessageHandler
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error executing handler for root '{message.Type}': {ex.Message}");
+            Logger.Error($"Error executing handler for root '{message.Type}': {ex.Message}");
         }
     }
     
@@ -98,7 +99,7 @@ public class MessageHandler
         if (isAuthenticated && hasAccountId && hasDisplayName && hasJid && hasResource)
         {
             client.IsLoggedIn = true;
-            Console.WriteLine($"User '{client.DisplayName}' ({client.AccountId}) successfully logged in");
+            Logger.Info($"User '{client.DisplayName}' ({client.AccountId}) successfully logged in");
         
             EventManager.OnClientLogin(client);
         }

@@ -15,6 +15,7 @@ public class ApiHandler
         
         _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
         _httpClient.DefaultRequestHeaders.Add("User-Agent", "Hermes-XMPP-Server");
+        _httpClient.DefaultRequestHeaders.Add("X-Hermes-Token", Globals.Token);
         
         _httpClient.Timeout = TimeSpan.FromSeconds(10);
     }

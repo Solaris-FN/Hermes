@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Hermes.Utilities;
 
 namespace Hermes
 {
@@ -32,12 +33,12 @@ namespace Hermes
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.Message}");
+                Logger.Error($"Error: {ex.Message}");
             }
             finally
             {
                 await server.StopAsync();
-                Console.WriteLine("Server stopped");
+                Logger.Info("Server stopped");
             }
         }
     }

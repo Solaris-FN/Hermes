@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Hermes.Utilities;
 
 namespace Hermes;
 
@@ -25,7 +26,7 @@ public class Configuration
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading configuration: {ex.Message}");
+            Logger.Error($"Error loading configuration: {ex.Message}");
             return new Configuration();
         }
     }
@@ -40,7 +41,7 @@ public class Configuration
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error saving configuration: {ex.Message}");
+            Logger.Error($"Error saving configuration: {ex.Message}");
         }
     }
 }
