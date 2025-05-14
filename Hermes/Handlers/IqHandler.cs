@@ -28,8 +28,6 @@ public class IqHandler
                     return;
                 }
                 
-                Console.WriteLine(JsonConvert.SerializeObject(client, Formatting.Indented));
-                
                 if (string.IsNullOrEmpty(client.Resource) 
                     && string.IsNullOrEmpty(client.Jid)
                     && string.IsNullOrEmpty(client.Token) 
@@ -60,8 +58,9 @@ public class IqHandler
                          ResponseHelper.SendStreamError(socket, "invalid-credentials");
                          return;
                      }
-
+                     
                     client.Resource = resourceValue;
+                    client.AccountId = authResponse.AccountId;
                     client.DisplayName = authResponse.AccountId;
                     
                     client.Jid = $"{client.AccountId}@{Globals.Domain}/{client.Resource}";

@@ -1,4 +1,6 @@
 ﻿using System.Text.Json;
+using Hermes.Utilities;
+using Newtonsoft.Json;
 
 namespace Hermes.Handlers;
 
@@ -25,19 +27,19 @@ public class ApiHandler
         try
         {
             var response = await _httpClient.GetAsync(endpoint);
-            
+        
             if (response.IsSuccessStatusCode)
             {
                 var jsonContent = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<T>(jsonContent);
+                return JsonConvert.DeserializeObject<T>(jsonContent); 
             }
-            
-            Console.WriteLine($"API GET failed: {endpoint}, Status: {response.StatusCode}");
+        
+            Logger.Error($"API GET failed: {endpoint}, Status: {response.StatusCode}");
             return default;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"API GET exception: {endpoint}, Error: {ex.Message}");
+            Logger.Error($"API GET exception: {endpoint}, Error: {ex.Message}");
             return default;
         }
     }
