@@ -1,10 +1,12 @@
 ﻿using Fleck;
+using Newtonsoft.Json;
 
 namespace Hermes.Classes;
 
 public class SocketClientDefinition
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
+    [JsonIgnore]
     public IWebSocketConnection Socket { get; set; }
     public bool IsLoggedIn { get; set; } = false;
     public bool IsAuthenticated { get; set; } = false;

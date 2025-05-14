@@ -27,20 +27,53 @@ public class IqHandler
                     ResponseHelper.SendStreamError(socket, "not-well-formed");
                     return;
                 }
-
-                if (client.Resource == null && client.Jid == null)
+                
+                Console.WriteLine(JsonConvert.SerializeObject(client, Formatting.Indented));
+                
+                if (string.IsNullOrEmpty(client.Resource) 
+                    && string.IsNullOrEmpty(client.Jid)
+                    && string.IsNullOrEmpty(client.Token) 
+                    && string.IsNullOrEmpty(client.AccountId) 
+                    && !client.IsAuthenticated)
                 {
                     var resourceValue = query.Elements()
                         .FirstOrDefault(x => x.Name.LocalName == "resource")?.Value;
                     var usernameValue = query.Elements()
                         .FirstOrDefault(x => x.Name.LocalName == "username")?.Value;
+                    var passwordValue = query.Elements()
+                        .FirstOrDefault(x => x.Name.LocalName == "password")?.Value;
     
-                    if (string.IsNullOrEmpty(resourceValue) || string.IsNullOrEmpty(usernameValue))
+                    if (string.IsNullOrEmpty(resourceValue) || string.IsNullOrEmpty(usernameValue) || string.IsNullOrEmpty(passwordValue))
                         return;
-    
+                    
+                     var queryParams = new Dictionary<string, string>
+                     {
+                         { "accountId", usernameValue },
+                         { "token", passwordValue },
+                     };
+                    
+                     string verifyEndpoint = "/h/v1/auth/verify" + ApiHandler.BuildQueryString(queryParams);
+                    
+                     var authResponse = await ApiHandler.GetAsync<AuthResponse>(verifyEndpoint);
+                     if (authResponse == null)
+                     {
+                         ResponseHelper.SendStreamError(socket, "invalid-credentials");
+                         return;
+                     }
+
                     client.Resource = resourceValue;
-                    client.DisplayName = usernameValue;
+                    client.DisplayName = authResponse.AccountId;
+                    
                     client.Jid = $"{client.AccountId}@{Globals.Domain}/{client.Resource}";
+                    client.Token = passwordValue;
+                    client.IsAuthenticated = true;
+                    
+                    socket.Send(new XElement(XNamespace.Get("jabber:client") + "iq",
+                        new XAttribute("type", "result"),
+                        new XAttribute("xmlns", "jabber:client"),
+                        new XAttribute("id", "_xmpp_auth1"),
+                        "Authentication successful."
+                    ).ToString());
                 }
 
                 if (string.IsNullOrEmpty(client.Resource) || 
@@ -51,13 +84,6 @@ public class IqHandler
                     ResponseHelper.SendStreamError(socket, "not-well-formed");
                     return;
                 }
-
-                socket.Send(new XElement(XNamespace.Get("jabber:client") + "iq",
-                    new XAttribute("type", "result"),
-                    new XAttribute("xmlns", "jabber:client"),
-                    new XAttribute("id", "_xmpp_auth1"),
-                    "Authentication successful."
-                ).ToString());
                 break;
 
             case "_xmpp_bind1":
