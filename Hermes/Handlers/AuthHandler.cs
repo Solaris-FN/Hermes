@@ -9,16 +9,6 @@ namespace Hermes.Handlers;
 
 public class AuthHandler
 {
-    private static readonly HttpClient _httpClient;
-
-    static AuthHandler()
-    {
-        _httpClient = new HttpClient
-        {
-            BaseAddress = new Uri(Globals.BaseApiUrl)
-        };
-    }
-
     public static async Task HandleAsync(IWebSocketConnection socket, SocketClientDefinition client, XmppMessage root)
     {
         if (root is null || root.Element is null)
@@ -40,36 +30,30 @@ public class AuthHandler
         string accountId = authFields[1];
         string token = authFields.Length > 2 ? authFields[2] : string.Empty;
         
-        try
+        var queryParams = new Dictionary<string, string>
         {
-            var response = await _httpClient.GetAsync($"/h/v1/auth/verify?accountId={Uri.EscapeDataString(accountId)}");
+            { "accountId", accountId },
+            { "token", token }
+        };
+        
+        string endpoint = "/h/v1/auth/verify" + ApiHandler.BuildQueryString(queryParams);
+        
+        var authResponse = await ApiHandler.GetAsync<AuthResponse>(endpoint);
+        
+        if (authResponse != null)
+        {
+            client.AccountId = authResponse.AccountId;
+            client.Token = token;
+            client.DisplayName = authResponse.Username;
+            client.IsAuthenticated = true;
             
-            if (response.IsSuccessStatusCode)
-            {
-                var jsonContent = await response.Content.ReadAsStringAsync();
-                var authResponse = JsonSerializer.Deserialize<AuthResponse>(jsonContent);
-                
-                if (authResponse != null)
-                {
-                    client.AccountId = authResponse.AccountId;
-                    client.Token = token;
-                    client.DisplayName = authResponse.Username;
-                    client.IsAuthenticated = true;
-
-                    await socket.Send(new XElement(
-                        XNamespace.Get("urn:ietf:params:xml:ns:xmpp-sasl") + "success"
-                    ).ToString());
-                    
-                    return;
-                }
-            }
-            
-            await socket.Send(CreateFailureResponse("not-authorized", "Invalid credentials"));
+            await socket.Send(new XElement(
+                XNamespace.Get("urn:ietf:params:xml:ns:xmpp-sasl") + "success"
+            ).ToString());
         }
-        catch (Exception ex)
+        else
         {
-            Console.WriteLine($"Authentication error: {ex.Message}");
-            await socket.Send(CreateFailureResponse("temporary-auth-failure", "Authentication service unavailable"));
+            await socket.Send(CreateFailureResponse("not-authorized", "Invalid credentials"));
         }
     }
 
