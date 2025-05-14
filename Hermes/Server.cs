@@ -15,7 +15,7 @@ public class Server
     private WebSocketServer _server;
     private readonly Configuration _config;
     private readonly IClientManager _clientManager;
-    private readonly MessageHandler _messageHandler;
+    private readonly SocketMessageHandler _messageHandler;
     
     public Server(Configuration config)
     {
@@ -23,7 +23,7 @@ public class Server
         Globals._clients = new ConcurrentDictionary<Guid, SocketClientDefinition>();
         
         _clientManager = new ClientManager();
-        _messageHandler = new MessageHandler(_clientManager);
+        _messageHandler = new SocketMessageHandler(_clientManager);
     }
 
     public async Task StartAsync()

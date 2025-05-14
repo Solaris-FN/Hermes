@@ -1,7 +1,7 @@
 ﻿using System.Xml.Linq;
 using Fleck;
 
-namespace Hermes.Utilities;
+namespace Hermes.Helpers;
 
 public class ResponseHelper
 {

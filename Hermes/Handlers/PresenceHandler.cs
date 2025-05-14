@@ -44,8 +44,6 @@ public class PresenceHandler
         if (isAway) presenceResponse.Add(new XElement(clientNamespace + "show", "away"));
 
         await socket.Send(presenceResponse.ToString());
-
-        Console.WriteLine(JsonConvert.SerializeObject(client, Formatting.Indented));
         
         var endpoint = $"/h/v1/friends?accountId={Uri.EscapeDataString(client.AccountId)}";
         var friends = await ApiHandler.GetAsync<List<FriendResponse>>(endpoint);

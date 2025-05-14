@@ -2,6 +2,7 @@
 using System.Xml.Linq;
 using Fleck;
 using Hermes.Classes;
+using Hermes.Helpers;
 using Hermes.Utilities;
 using Newtonsoft.Json;
 

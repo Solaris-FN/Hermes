@@ -7,12 +7,12 @@ using Hermes.Utilities;
 
 namespace Hermes.Handlers;
 
-public class MessageHandler
+public class SocketMessageHandler
 {
     private readonly IClientManager _clientManager;
     public event EventHandler<XmppMessageEventArgs> XmppMessageReceived;
     
-    public MessageHandler(IClientManager clientManager)
+    public SocketMessageHandler(IClientManager clientManager)
     {
         _clientManager = clientManager ?? throw new ArgumentNullException(nameof(clientManager));
     }

@@ -19,5 +19,6 @@ public static class Globals
             ["auth"] = new Func<IWebSocketConnection, SocketClientDefinition, XmppMessage, Task>(AuthHandler.HandleAsync),
             ["iq"] = new Func<IWebSocketConnection, SocketClientDefinition, XmppMessage, Task>(IqHandler.HandleAsync),
             ["presence"] = new Func<IWebSocketConnection, SocketClientDefinition, XmppMessage, Task>(PresenceHandler.HandleAsync),
+            ["message"] = new Func<IWebSocketConnection, SocketClientDefinition, XmppMessage, Task>(MessageHandler.HandleAsync),
         };
 }
