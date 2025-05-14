@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Hermes.Api;
 using Hermes.Utilities;
 
 namespace Hermes
@@ -11,34 +12,42 @@ namespace Hermes
         {
             var config = Configuration.Load();
             var server = new Server(config);
-            
+
+            var apiServer = new ApiServer(new ServerConfig
+            {
+                ServerName = config.ServerName,
+                Environment = config.Environment,
+                HttpPort = config.HttpPort
+            });
+
+            var cancellationTokenSource = new CancellationTokenSource();
+            Console.CancelKeyPress += (sender, e) =>
+            {
+                e.Cancel = true;
+                cancellationTokenSource.Cancel();
+            };
+
             try
             {
-                await server.StartAsync();
-                
-                var cancellationTokenSource = new CancellationTokenSource();
-                Console.CancelKeyPress += (sender, e) =>
-                {
-                    e.Cancel = true;
-                    cancellationTokenSource.Cancel();
-                };
-                
-                try
-                {
-                    await Task.Delay(Timeout.Infinite, cancellationTokenSource.Token);
-                }
-                catch (TaskCanceledException)
-                {
-                }
+                var apiTask = apiServer.StartAsync();
+                var socketTask = server.StartAsync();
+
+                await Task.Delay(Timeout.Infinite, cancellationTokenSource.Token);
+            }
+            catch (TaskCanceledException)
+            {
             }
             catch (Exception ex)
             {
-                Logger.Error($"Error: {ex.Message}");
+                Logger.Error($"Unexpected error: {ex.Message}");
             }
             finally
             {
                 await server.StopAsync();
-                Logger.Info("Server stopped");
+                Logger.Info("Socket server stopped");
+
+                await apiServer.StopAsync();
+                Logger.Info("HTTP server stopped");
             }
         }
     }

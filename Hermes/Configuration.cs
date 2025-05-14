@@ -7,6 +7,9 @@ public class Configuration
 {
     public string Host { get; set; } = "0.0.0.0";
     public int Port { get; set; } = 2053;
+    public string ServerName  { get; set; } = "localhost";
+    public string Environment { get; set; } = "Development";
+    public int HttpPort { get; set; } = 8888;
     
     private static string ConfigFilePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.json");
     

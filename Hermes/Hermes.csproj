@@ -18,4 +18,8 @@
       </None>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Hermes.Api\Hermes.Api.csproj" />
+    </ItemGroup>
+
 </Project>

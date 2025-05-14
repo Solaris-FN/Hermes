@@ -1,4 +1,7 @@
 ﻿{
   "Host": "0.0.0.0",
-  "Port": 2053
+  "Port": 2053,
+  "ServerName": "HermesAPI",
+  "Environment": "Development",
+  "HttpPort": 8888
 }
