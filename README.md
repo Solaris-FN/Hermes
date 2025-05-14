@@ -1,2 +1,2 @@
-# Hermes-
+# Hermes
 C# XMPP
