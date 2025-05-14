@@ -1,4 +1,5 @@
 ﻿using Hermes.Classes;
+using Hermes.Global.Definitions;
 
 namespace Hermes.Events;
 

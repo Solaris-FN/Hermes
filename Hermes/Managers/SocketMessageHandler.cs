@@ -2,6 +2,7 @@
 using Fleck;
 using Hermes.Classes;
 using Hermes.Events;
+using Hermes.Global.Definitions;
 using Hermes.Interfaces;
 using Hermes.Utilities;
 

@@ -1,6 +1,8 @@
 ﻿using System.Xml.Linq;
 using Fleck;
 using Hermes.Classes;
+using Hermes.Global;
+using Hermes.Global.Definitions;
 using Hermes.Utilities;
 using Newtonsoft.Json;
 
@@ -56,7 +58,7 @@ public class PresenceHandler
 
         foreach (var friend in friends.Where(f => f.Status == "ACCEPTED"))
         {
-            var friendClientPair = Globals._clients.FirstOrDefault(x => x.Value.AccountId == friend.Id);
+            var friendClientPair = HermesGlobal._clients.FirstOrDefault(x => x.Value.AccountId == friend.Id);
             if (friendClientPair.Equals(default(KeyValuePair<Guid, SocketClientDefinition>)))
             {
                 Logger.Error($"Friend with AccountId '{friend.Id}' not found.");

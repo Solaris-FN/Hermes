@@ -1,6 +1,6 @@
 ﻿using System.Xml.Linq;
 
-namespace Hermes.Classes;
+namespace Hermes.Global.Definitions;
 
 public class XmppMessage
 {

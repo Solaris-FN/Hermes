@@ -2,6 +2,8 @@
 using System.Xml.Linq;
 using Fleck;
 using Hermes.Classes;
+using Hermes.Global;
+using Hermes.Global.Definitions;
 using Hermes.Helpers;
 using Hermes.Utilities;
 using Newtonsoft.Json;
@@ -64,7 +66,7 @@ public class IqHandler
                     client.AccountId = authResponse.AccountId;
                     client.DisplayName = authResponse.AccountId;
                     
-                    client.Jid = $"{client.AccountId}@{Globals.Domain}/{client.Resource}";
+                    client.Jid = $"{client.AccountId}@{HermesGlobal.Domain}/{client.Resource}";
                     client.Token = passwordValue;
                     client.IsAuthenticated = true;
                     
@@ -92,7 +94,7 @@ public class IqHandler
                 if (client.Resource is null && client.AccountId != null)
                 {
                     client.Resource = resource;
-                    client.Jid = $"{client.AccountId}@{Globals.Domain}/{client.Resource}";
+                    client.Jid = $"{client.AccountId}@{HermesGlobal.Domain}/{client.Resource}";
 
                     socket.Send(
                         new XElement(XNamespace.Get("jabber:client") + "iq",
@@ -118,7 +120,7 @@ public class IqHandler
 
                 await socket.Send(new XElement(clientNamespace + "iq",
                     new XAttribute("to", client.Jid),
-                    new XAttribute("from", Globals.Domain),
+                    new XAttribute("from", HermesGlobal.Domain),
                     new XAttribute("id", attributeId),
                     new XAttribute("xmlns", "jabber:client"),
                     new XAttribute("type", "result")
@@ -135,7 +137,7 @@ public class IqHandler
 
                 foreach (var friend in friends.Where(f => f.Status == "ACCEPTED"))
                 {
-                    var friendClientPair = Globals._clients.FirstOrDefault(x => x.Value.AccountId == friend.Id);
+                    var friendClientPair = HermesGlobal._clients.FirstOrDefault(x => x.Value.AccountId == friend.Id);
                     if (friendClientPair.Equals(default(KeyValuePair<Guid, SocketClientDefinition>)))
                     {
                         Logger.Error($"Friend with AccountId '{friend.Id}' not found.");
@@ -175,7 +177,7 @@ public class IqHandler
                 socket.Send(
                     new XElement(XNamespace.Get("jabber:client") + "iq",
                         new XAttribute("to", client.Jid),
-                        new XAttribute("from", Globals.Domain),
+                        new XAttribute("from", HermesGlobal.Domain),
                         new XAttribute("id", attributeId),
                         new XAttribute("type", "result")
                     ).ToString()

@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Hermes.Global;
 using Hermes.Utilities;
 using Newtonsoft.Json;
 
@@ -9,7 +10,7 @@ public class ApiHandler
     private static readonly HttpClient _httpClient;
     static ApiHandler()
     {
-        string baseApiUrl = Globals.BaseApiUrl;
+        string baseApiUrl = HermesGlobal.BaseApiUrl;
         _httpClient = new HttpClient
         {
             BaseAddress = new Uri(baseApiUrl)
@@ -17,7 +18,7 @@ public class ApiHandler
         
         _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
         _httpClient.DefaultRequestHeaders.Add("User-Agent", "Hermes-XMPP-Server");
-        _httpClient.DefaultRequestHeaders.Add("X-Hermes-Token", Globals.Token);
+        _httpClient.DefaultRequestHeaders.Add("X-Hermes-Token", HermesGlobal.Token);
         
         _httpClient.Timeout = TimeSpan.FromSeconds(10);
     }

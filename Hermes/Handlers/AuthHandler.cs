@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text.Json;
 using Fleck;
 using Hermes.Classes;
+using Hermes.Global.Definitions;
 
 namespace Hermes.Handlers;
 

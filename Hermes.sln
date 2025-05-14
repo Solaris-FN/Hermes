@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hermes.HTTP", "Hermes.HTTP\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hermes.Api", "Hermes.Api\Hermes.Api.csproj", "{F1BF0639-40A5-4459-B855-0BED56A2D98A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hermes.Global", "Hermes.Global\Hermes.Global.csproj", "{FE39AE1E-56E5-48AF-A4DD-4382CD6FFB81}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{F1BF0639-40A5-4459-B855-0BED56A2D98A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F1BF0639-40A5-4459-B855-0BED56A2D98A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F1BF0639-40A5-4459-B855-0BED56A2D98A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FE39AE1E-56E5-48AF-A4DD-4382CD6FFB81}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE39AE1E-56E5-48AF-A4DD-4382CD6FFB81}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE39AE1E-56E5-48AF-A4DD-4382CD6FFB81}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE39AE1E-56E5-48AF-A4DD-4382CD6FFB81}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

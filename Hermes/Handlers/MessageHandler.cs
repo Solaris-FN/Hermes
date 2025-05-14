@@ -1,6 +1,8 @@
 ﻿using System.Xml.Linq;
 using Fleck;
 using Hermes.Classes;
+using Hermes.Global;
+using Hermes.Global.Definitions;
 using Hermes.Helpers;
 using Hermes.Utilities;
 
@@ -42,7 +44,7 @@ public class MessageHandler
             if (type == "chat")
             {
                 string bareJid = to.Split('/')[0];
-                var targetPair = Globals._clients.FirstOrDefault(x => x.Value.Jid.Split('/')[0] == bareJid);
+                var targetPair = HermesGlobal._clients.FirstOrDefault(x => x.Value.Jid.Split('/')[0] == bareJid);
                 
                 if (targetPair.Equals(default(KeyValuePair<string, SocketClientDefinition>)))
                     return;

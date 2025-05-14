@@ -1,6 +1,8 @@
 ﻿using System.Xml.Linq;
 using Fleck;
 using Hermes.Classes;
+using Hermes.Global;
+using Hermes.Global.Definitions;
 
 namespace Hermes.Handlers;
 
@@ -21,7 +23,7 @@ public class OpenHandler
     {
         var openMessage = new XElement(
             XmppFraming + "open",
-            new XAttribute("from", Globals.Domain),
+            new XAttribute("from", HermesGlobal.Domain),
             new XAttribute("id", socket.ConnectionInfo.Id),
             new XAttribute("version", "1.0"),
             new XAttribute(Xml + "lang", "en")

@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using Fleck;
 using Hermes.Classes;
 using Hermes.Events;
+using Hermes.Global;
+using Hermes.Global.Definitions;
 using Hermes.Handlers;
 using Hermes.Interfaces;
 using Hermes.Utilities;
@@ -20,7 +22,7 @@ public class Server
     public Server(Configuration config)
     {
         _config = config;
-        Globals._clients = new ConcurrentDictionary<Guid, SocketClientDefinition>();
+        HermesGlobal._clients = new ConcurrentDictionary<Guid, SocketClientDefinition>();
         
         _clientManager = new ClientManager();
         _messageHandler = new SocketMessageHandler(_clientManager);
@@ -50,12 +52,12 @@ public class Server
     {
         if (_server != null)
         {
-            foreach (var client in Globals._clients.Values)
+            foreach (var client in HermesGlobal._clients.Values)
             {
                 client.Socket.Close();
             }
 
-            Globals._clients.Clear();
+            HermesGlobal._clients.Clear();
 
             await Task.Delay(100);
 

@@ -40,6 +40,11 @@ public class ApiServer
             var response = System.Text.Json.JsonSerializer.Serialize(status);
             await WriteJsonResponse(res, response);
         });
+        
+        _httpServer.RegisterEndpoint("/h/v1/xmpp/presence/forward", async (req, res) =>
+        {
+            
+        });
     }
     
     private async Task WriteJsonResponse(HttpListenerResponse response, string json)
