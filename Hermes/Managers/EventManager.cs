@@ -1,4 +1,5 @@
-﻿using Hermes.Events;
+﻿using Hermes.Classes;
+using Hermes.Events;
 
 namespace Hermes.Handlers;
 
@@ -8,6 +9,7 @@ public static class EventManager
     public static event EventHandler<ClientDisconnectedEventArgs> ClientDisconnected;
     public static event EventHandler<MessageReceivedEventArgs> MessageReceived;
     public static event EventHandler<Events.ErrorEventArgs> ErrorOccurred;
+    public static event Action<SocketClientDefinition> ClientLogin;
 
     public static void OnClientConnected(ClientConnectedEventArgs e)
     {
@@ -27,5 +29,10 @@ public static class EventManager
     public static void OnErrorOccurred(Events.ErrorEventArgs e)
     {
         ErrorOccurred?.Invoke(null, e);
+    }
+
+    public static void OnClientLogin(SocketClientDefinition e)
+    {
+        ClientLogin?.Invoke(e);
     }
 }

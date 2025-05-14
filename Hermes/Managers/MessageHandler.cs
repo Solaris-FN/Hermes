@@ -50,6 +50,10 @@ public class MessageHandler
 
     public async Task HandleXmppMessageAsync(XmppMessage message, SocketClientDefinition client, IWebSocketConnection socket)
     {
+        if (message == null) throw new ArgumentNullException(nameof(message));
+        if (client == null) throw new ArgumentNullException(nameof(client));
+        if (socket == null) throw new ArgumentNullException(nameof(socket));
+        
         if (!Globals.MessageHandlers.TryGetValue(message.Type, out var handler))
         {
             Console.WriteLine($"No handler found for root element: {message.Type}");
@@ -60,37 +64,43 @@ public class MessageHandler
         
         try
         {
-            switch (handler)
+            await (handler switch
             {
-                case Func<IWebSocketConnection, SocketClientDefinition, XmppMessage, Task> asyncHandler:
-                    await asyncHandler(socket, client, message);
-                    break;
-                case Action<IWebSocketConnection, SocketClientDefinition, XmppMessage> syncHandler:
-                    syncHandler(socket, client, message);
-                    break;
-                default:
-                    Console.WriteLine($"Handler for '{message.Type}' has an unsupported type.");
-                    break;
-            }
+                Func<IWebSocketConnection, SocketClientDefinition, XmppMessage, Task> asyncHandler => 
+                    asyncHandler(socket, client, message),
+                
+                Action<IWebSocketConnection, SocketClientDefinition, XmppMessage> syncHandler => 
+                    Task.Run(() => syncHandler(socket, client, message)),
+                
+                _ => Task.FromException(new InvalidOperationException($"Unsupported handler type for '{message.Type}'"))
+            });
+            
+            CheckAndUpdateLoginStatus(client);
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error executing handler for root '{message.Type}': {ex.Message}");
         }
-        
-        bool isValidConnection =
-            !client.IsLoggedIn &&
-            client.IsAuthenticated &&
-            !string.IsNullOrEmpty(client.AccountId) &&
-            !string.IsNullOrEmpty(client.DisplayName) &&
-            !string.IsNullOrEmpty(client.Jid) &&
-            !string.IsNullOrEmpty(client.Resource);
-
-        if (isValidConnection)
+    }
+    
+    private void CheckAndUpdateLoginStatus(SocketClientDefinition client)
+    {
+        if (client.IsLoggedIn) return;
+    
+        var (isAuthenticated, hasAccountId, hasDisplayName, hasJid, hasResource) = (
+            client.IsAuthenticated,
+            !string.IsNullOrEmpty(client.AccountId),
+            !string.IsNullOrEmpty(client.DisplayName),
+            !string.IsNullOrEmpty(client.Jid),
+            !string.IsNullOrEmpty(client.Resource)
+        );
+    
+        if (isAuthenticated && hasAccountId && hasDisplayName && hasJid && hasResource)
         {
             client.IsLoggedIn = true;
-    
-            Console.WriteLine($"New xmpp login detected for '{client.DisplayName}'");
+            Console.WriteLine($"User '{client.DisplayName}' ({client.AccountId}) successfully logged in");
+        
+            EventManager.OnClientLogin(client);
         }
     }
 }
