@@ -9,7 +9,7 @@ public static class Globals
 {
     public static ConcurrentDictionary<Guid, SocketClientDefinition> _clients;
     public static string Domain = "hermes.solarisfn.org";
-    public static string BaseApiUrl = "http://localhost:3551"; // change this obviously
+    public static string BaseApiUrl = "https://api-v1-horizon-external-api.solarisfn.org"; // change this obviously
     public static string Token = "token123verysecurehahahakys";
 
     public static readonly ConcurrentDictionary<string, Delegate> MessageHandlers =
