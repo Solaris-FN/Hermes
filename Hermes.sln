@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hermes", "Hermes\Hermes.csproj", "{2CF65ABD-18AC-4F37-89CF-49C5C4449C8B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2CF65ABD-18AC-4F37-89CF-49C5C4449C8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2CF65ABD-18AC-4F37-89CF-49C5C4449C8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2CF65ABD-18AC-4F37-89CF-49C5C4449C8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2CF65ABD-18AC-4F37-89CF-49C5C4449C8B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
