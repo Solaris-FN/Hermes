@@ -3,7 +3,13 @@ using Hermes.Classes;
 
 namespace Hermes;
 
-public class Globals
+public static class Globals
 {
     public static ConcurrentDictionary<Guid, SocketClientDefinition> _clients;
+
+    public static readonly ConcurrentDictionary<string, Delegate> MessageHandlers =
+        new ConcurrentDictionary<string, Delegate>
+        {
+            
+        };
 }

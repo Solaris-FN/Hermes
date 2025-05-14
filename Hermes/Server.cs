@@ -14,12 +14,15 @@ public class Server
     private WebSocketServer _server;
     private readonly Configuration _config;
     private readonly IClientManager _clientManager;
+    private readonly MessageHandler _messageHandler;
     
     public Server(Configuration config)
     {
         _config = config;
         Globals._clients = new ConcurrentDictionary<Guid, SocketClientDefinition>();
+        
         _clientManager = new ClientManager();
+        _messageHandler = new MessageHandler(_clientManager);
     }
 
     public async Task StartAsync()
@@ -33,7 +36,7 @@ public class Server
         {
             socket.OnOpen = () => HandleClientConnected(socket);
             socket.OnClose = () => HandleClientDisconnected(socket);
-            socket.OnMessage = message => HandleMessageReceived(socket, message);
+            socket.OnMessage = async (message) => await HandleMessageReceived(socket, message);
             socket.OnError = ex => HandleError(socket, ex);
         });
 
@@ -110,14 +113,18 @@ public class Server
         }
     }
     
-    private void HandleMessageReceived(IWebSocketConnection socket, string message)
+    private async Task HandleMessageReceived(IWebSocketConnection socket, string message)
     {
+        Console.WriteLine($"Received message: {message}");
+        
         try
         {
             _clientManager.TryGetClient(socket.ConnectionInfo.Id, out SocketClientDefinition client);
+                
             if (client == null) return;
+            if (!_messageHandler.TryParseXmppMessage(message, out var xmppMessage)) return;
             
-            Console.WriteLine($"Received message: {message}");
+            await _messageHandler.HandleXmppMessageAsync(xmppMessage, client, socket);
             
             EventManager.OnMessageReceived(new MessageReceivedEventArgs
             {
