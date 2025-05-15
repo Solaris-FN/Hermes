@@ -44,50 +44,68 @@ public class ApiServer
             var response = System.Text.Json.JsonSerializer.Serialize(status);
             await WriteJsonResponse(res, response);
         });
-        
-        _httpServer.RegisterEndpoint("/h/v1/xmpp/forward/{accountId}/{body}",
+        _httpServer.RegisterEndpoint("/h/v1/xmpp/forward/{accountId}",
             async (req, res, routeParams) =>
             {
-                var accountIdExists = routeParams.TryGetValue("accountId", out var accountId);
-                var bodyExists = routeParams.TryGetValue("body", out var body);
+            var accountIdExists = routeParams.TryGetValue("accountId", out var accountId);
 
-                if (!accountIdExists || !bodyExists)
-                {
-                    await WriteErrorResponse(res, HttpStatusCode.BadRequest, "Missing route parameters.");
-                    return;
-                }
-                
-                if (HermesGlobal._clients == null)
-                {
-                    await WriteErrorResponse(res, HttpStatusCode.InternalServerError, "Clients list not initialized.");
-                    return;
-                }
-                
-                var clientPair = HermesGlobal._clients.FirstOrDefault(x => x.Value.AccountId == accountId);
-                if (clientPair.Equals(default(KeyValuePair<string, SocketClientDefinition>)))
-                {
-                    await WriteErrorResponse(res, HttpStatusCode.NotFound, $"Client with ID '{accountId}' not found.");
-                    return;
-                }
-                
-                var client = clientPair.Value;
-                if (client == null)
-                {
-                    await WriteErrorResponse(res, HttpStatusCode.NotFound,
-                        $"Client with ID '{accountId}' not found.");
-                    return;
-                }
-                        
-                var stanza = new XElement(XNamespace.Get("jabber:client") + "message",
-                    new XAttribute("from", $"xmpp-admin@{HermesGlobal.Domain}"),
-                    new XAttribute("to", client.Jid),
-                    new XAttribute("xmlns", "jabber:client"),
-                    new XElement("body", body)
-                );
+            if (!accountIdExists)
+            {
+                await WriteErrorResponse(res, HttpStatusCode.BadRequest, "Missing route parameter 'accountId'.");
+                return;
+            }
 
+            if (HermesGlobal._clients == null)
+            {
+                await WriteErrorResponse(res, HttpStatusCode.InternalServerError, "Clients list not initialized.");
+                return;
+            }
+
+            var clientPair = HermesGlobal._clients.FirstOrDefault(x => x.Value.AccountId == accountId);
+            if (clientPair.Equals(default(KeyValuePair<string, SocketClientDefinition>)))
+            {
+                await WriteErrorResponse(res, HttpStatusCode.NotFound, $"Client with ID '{accountId}' not found.");
+                return;
+            }
+
+            var client = clientPair.Value;
+            if (client == null)
+            {
+                await WriteErrorResponse(res, HttpStatusCode.NotFound,
+                $"Client with ID '{accountId}' not found.");
+                return;
+            }
+
+            string requestBody;
+            using (var reader = new StreamReader(req.InputStream, req.ContentEncoding))
+            {
+                requestBody = await reader.ReadToEndAsync();
+            }
+
+            if (string.IsNullOrWhiteSpace(requestBody))
+            {
+                await WriteErrorResponse(res, HttpStatusCode.BadRequest, "Request body is empty.");
+                return;
+            }
+
+            var stanza = new XElement(XNamespace.Get("jabber:client") + "message",
+                new XAttribute("from", $"xmpp-admin@{HermesGlobal.Domain}"),
+                new XAttribute("to", client.Jid),
+                new XAttribute("xmlns", "jabber:client"),
+                new XElement("body", requestBody)
+            );
+
+            if (client.Socket.IsConnected)
+            {
                 await client.Socket.Send(stanza.ToString(SaveOptions.DisableFormatting));
-                
-                await WriteJsonResponse(res, "{ \"status\": \"Forwarded\" }");
+            }
+            else
+            {
+                await WriteErrorResponse(res, HttpStatusCode.InternalServerError, "Client socket is not connected.");
+                return;
+            }
+
+            await WriteJsonResponse(res, "{ \"status\": \"Forwarded\" }");
             });
 
         _httpServer.RegisterEndpoint("/h/v1/xmpp/friends/status/{accountId}",
