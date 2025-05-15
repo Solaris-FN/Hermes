@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hermes.Api", "Hermes.Api.csproj", "{57ED8C30-44BA-E608-5287-FE0E71B7B2D0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{57ED8C30-44BA-E608-5287-FE0E71B7B2D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57ED8C30-44BA-E608-5287-FE0E71B7B2D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57ED8C30-44BA-E608-5287-FE0E71B7B2D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57ED8C30-44BA-E608-5287-FE0E71B7B2D0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {123BDCEE-2B43-45F8-9A09-D9EAA37F90A6}
+	EndGlobalSection
+EndGlobal

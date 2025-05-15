@@ -5,7 +5,11 @@ using System.Xml.Linq;
 using Hermes.Api.Utilities;
 using Hermes.Global;
 using Hermes.Global.Definitions;
+using Hermes.Global.Requests;
 using Hermes.HTTP;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Hermes.Api;
 
@@ -17,10 +21,10 @@ public class ApiServer
     public ApiServer(ServerConfig config)
     {
         _config = config ?? throw new ArgumentNullException(nameof(config));
-            
+
         var httpConfig = new HttpConfiguration(_config.HttpPort);
         _httpServer = new HttpServer(httpConfig);
-            
+
         ConfigureEndpoints();
     }
 
@@ -44,68 +48,70 @@ public class ApiServer
             var response = System.Text.Json.JsonSerializer.Serialize(status);
             await WriteJsonResponse(res, response);
         });
+
         _httpServer.RegisterEndpoint("/h/v1/xmpp/forward/{accountId}",
             async (req, res, routeParams) =>
             {
-            var accountIdExists = routeParams.TryGetValue("accountId", out var accountId);
+                var accountIdExists = routeParams.TryGetValue("accountId", out var accountId);
 
-            if (!accountIdExists)
-            {
-                await WriteErrorResponse(res, HttpStatusCode.BadRequest, "Missing route parameter 'accountId'.");
-                return;
-            }
+                if (!accountIdExists)
+                {
+                    await WriteErrorResponse(res, HttpStatusCode.BadRequest, "Missing route parameter 'accountId'.");
+                    return;
+                }
 
-            if (HermesGlobal._clients == null)
-            {
-                await WriteErrorResponse(res, HttpStatusCode.InternalServerError, "Clients list not initialized.");
-                return;
-            }
+                if (HermesGlobal._clients == null)
+                {
+                    await WriteErrorResponse(res, HttpStatusCode.InternalServerError, "Clients list not initialized.");
+                    return;
+                }
 
-            var clientPair = HermesGlobal._clients.FirstOrDefault(x => x.Value.AccountId == accountId);
-            if (clientPair.Equals(default(KeyValuePair<string, SocketClientDefinition>)))
-            {
-                await WriteErrorResponse(res, HttpStatusCode.NotFound, $"Client with ID '{accountId}' not found.");
-                return;
-            }
+                var clientPair = HermesGlobal._clients.FirstOrDefault(x => x.Value.AccountId == accountId);
+                if (clientPair.Equals(default(KeyValuePair<string, SocketClientDefinition>)))
+                {
+                    await WriteErrorResponse(res, HttpStatusCode.NotFound, $"Client with ID '{accountId}' not found.");
+                    return;
+                }
 
-            var client = clientPair.Value;
-            if (client == null)
-            {
-                await WriteErrorResponse(res, HttpStatusCode.NotFound,
-                $"Client with ID '{accountId}' not found.");
-                return;
-            }
+                var client = clientPair.Value;
+                if (client == null)
+                {
+                    await WriteErrorResponse(res, HttpStatusCode.NotFound,
+                        $"Client with ID '{accountId}' not found.");
+                    return;
+                }
 
-            string requestBody;
-            using (var reader = new StreamReader(req.InputStream, req.ContentEncoding))
-            {
-                requestBody = await reader.ReadToEndAsync();
-            }
+                string requestBody;
+                using (var reader = new StreamReader(req.InputStream, req.ContentEncoding))
+                {
+                    requestBody = await reader.ReadToEndAsync();
+                }
 
-            if (string.IsNullOrWhiteSpace(requestBody))
-            {
-                await WriteErrorResponse(res, HttpStatusCode.BadRequest, "Request body is empty.");
-                return;
-            }
+                if (string.IsNullOrWhiteSpace(requestBody))
+                {
+                    await WriteErrorResponse(res, HttpStatusCode.BadRequest, "Request body is empty.");
+                    return;
+                }
 
-            var stanza = new XElement(XNamespace.Get("jabber:client") + "message",
-                new XAttribute("from", $"xmpp-admin@{HermesGlobal.Domain}"),
-                new XAttribute("to", client.Jid),
-                new XAttribute("xmlns", "jabber:client"),
-                new XElement("body", requestBody)
-            );
+                var stanza = new XElement(XNamespace.Get("jabber:client") + "message",
+                    new XAttribute("from", $"xmpp-admin@{HermesGlobal.Domain}"),
+                    new XAttribute("to", client.Jid),
+                    new XAttribute("xmlns", "jabber:client"),
+                    new XElement("body", requestBody)
+                );
 
-            if (client.Socket.IsAvailable)
-            {
-                await client.Socket.Send(stanza.ToString(SaveOptions.DisableFormatting));
-            }
-            else
-            {
-                await WriteErrorResponse(res, HttpStatusCode.InternalServerError, "Client socket is not connected.");
-                return;
-            }
+                if (client.Socket.IsAvailable)
+                {
+                    await client.Socket.Send(stanza.ToString(SaveOptions.DisableFormatting));
+                }
+                else
+                {
+                    await WriteErrorResponse(res, HttpStatusCode.InternalServerError,
+                        "Client socket is not connected.");
+                    return;
+                }
 
-            await WriteJsonResponse(res, "{ \"status\": \"Forwarded\" }");
+                await WriteJsonResponse(res, "{ \"status\": \"Forwarded\" }");
             });
 
         _httpServer.RegisterEndpoint("/h/v1/xmpp/friends/status/{accountId}",
@@ -149,7 +155,7 @@ public class ApiServer
                 var json = JsonSerializer.Serialize(result);
                 await WriteJsonResponse(res, json);
             });
-        
+
         _httpServer.RegisterEndpoint("/h/v1/xmpp/presence/forward/{senderId}/{receiverId}/{isOffline}",
             async (req, res, routeParams) =>
             {
@@ -225,20 +231,105 @@ public class ApiServer
 
                 await WriteJsonResponse(res, "{ \"status\": \"Forwarded\" }");
             });
+
+        _httpServer.RegisterEndpoint("/party/api/v1/Fortnite/parties", async (req, res, _) =>
+        {
+            if (req.HttpMethod != "POST")
+            {
+                await WriteErrorResponse(res, HttpStatusCode.MethodNotAllowed, "Method not allowed");
+                return;
+            }
+
+            string requestBody;
+            using (var reader = new StreamReader(req.InputStream, req.ContentEncoding))
+            {
+                requestBody = await reader.ReadToEndAsync();
+            }
+
+            var createParty = JsonConvert.DeserializeObject<PartyCreate>(requestBody);
+            if (createParty == null)
+            {
+                await WriteErrorResponse(res, HttpStatusCode.BadRequest, "Invalid request body");
+                return;
+            }
+
+            string accountId = createParty.join_info.connection.id.Split('@')[0];
+
+            if (HermesGlobal._clients == null)
+            {
+                await WriteErrorResponse(res, HttpStatusCode.InternalServerError, "Clients list not initialized");
+                return;
+            }
+
+            var client = HermesGlobal._clients.Values.FirstOrDefault(x => x.AccountId == accountId);
+            if (client == null)
+            {
+                await WriteErrorResponse(res, HttpStatusCode.NotFound, $"Client with ID '{accountId}' not found");
+                return;
+            }
+
+            string partyId = Guid.NewGuid().ToString().Replace("-", "");
+            string timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+
+            var newParty = new PartyDefinition
+            {
+                id = partyId,
+                created_at = timestamp,
+                updated_at = timestamp,
+                config = createParty.config,
+                members = new List<Members>
+                {
+                    new Members
+                    {
+                        account_id = accountId,
+                        meta = createParty.join_info.meta,
+                        connections = new List<Dictionary<string, object>>
+                        {
+                            new Dictionary<string, object>
+                            {
+                                { "id", createParty.join_info.connection.id },
+                                { "connected_at", timestamp },
+                                { "updated_at", timestamp },
+                                { "yield_leadership", createParty.join_info.connection.yield_leadership },
+                                { "meta", createParty.join_info.connection.meta ?? new() }
+                            }
+                        },
+                        revision = 0,
+                        updated_at = timestamp,
+                        joined_at = timestamp,
+                        role = "CAPTAIN"
+                    }
+                },
+                applicants = new List<object>(),
+                meta = createParty.meta,
+                invites = new List<object>(),
+                revision = 0,
+                intentions = new List<object>(),
+            };
+
+            HermesGlobal.parties.Add(newParty);
+
+            string json = JsonSerializer.Serialize(newParty, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = false
+            });
+            await WriteJsonResponse(res, json);
+        });
     }
 
     private async Task WriteJsonResponse(HttpListenerResponse response, string json)
     {
         response.ContentType = "application/json";
         response.StatusCode = (int)HttpStatusCode.OK;
-            
+
         var buffer = Encoding.UTF8.GetBytes(json);
         response.ContentLength64 = buffer.Length;
-            
+
         await response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
         response.Close();
     }
-    
+
     private async Task WriteErrorResponse(HttpListenerResponse response, HttpStatusCode statusCode, string message)
     {
         response.ContentType = "application/json";
