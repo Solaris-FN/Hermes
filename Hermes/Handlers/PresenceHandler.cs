@@ -45,8 +45,10 @@ public class PresenceHandler
         presenceResponse.Add(new XElement(clientNamespace + "status", statusValue));
         if (isAway) presenceResponse.Add(new XElement(clientNamespace + "show", "away"));
 
-        await socket.Send(presenceResponse.ToString());
-        
+   if (socket.IsAvailable) 
+{
+    await socket.Send(presenceResponse.ToString());
+}        
         var endpoint = $"/h/v1/friends?accountId={Uri.EscapeDataString(client.AccountId)}";
         var friends = await ApiHandler.GetAsync<List<FriendResponse>>(endpoint);
 
@@ -77,7 +79,10 @@ public class PresenceHandler
                 new XElement(clientNamespace + "status", statusValue));
 
             if (isAway) friendMessage.Add(new XElement(clientNamespace + "show", "away"));
-            await friendClient.Socket.Send(friendMessage.ToString());
+if (friendClient.Socket.IsAvailable) 
+{
+    await friendClient.Socket.Send(friendMessage.ToString());
+}
         }
     }
 }

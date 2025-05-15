@@ -95,7 +95,7 @@ public class ApiServer
                 new XElement("body", requestBody)
             );
 
-            if (client.Socket.IsConnected)
+            if (client.Socket.IsAvailable)
             {
                 await client.Socket.Send(stanza.ToString(SaveOptions.DisableFormatting));
             }
