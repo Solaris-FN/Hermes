@@ -124,6 +124,10 @@ public class HttpServer
 
                 if (RouteMatcher.TryMatch(routeTemplate, path, out var routeParams))
                 {
+                    response.AddHeader("Access-Control-Allow-Origin", "*");
+                    response.AddHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+                    response.AddHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
                     await handler(request, response, routeParams);
                     LogRequest(method, path, response.StatusCode);
                     return;
