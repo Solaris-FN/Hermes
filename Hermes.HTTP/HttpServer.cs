@@ -8,35 +8,32 @@ public class HttpServer
     private readonly HttpConfiguration _config;
     private HttpListener _listener;
     private bool _isRunning;
-    private readonly Dictionary<string, Func<HttpListenerRequest, HttpListenerResponse, Task>> _endpoints;
+    private readonly Dictionary<string, Func<HttpListenerRequest, HttpListenerResponse, Dictionary<string, string>, Task>> _endpoints;
 
     public HttpServer(HttpConfiguration config)
     {
         _config = config ?? throw new ArgumentNullException(nameof(config));
         _listener = new HttpListener();
-        _endpoints =
-            new Dictionary<string, Func<HttpListenerRequest, HttpListenerResponse, Task>>(StringComparer
-                .OrdinalIgnoreCase);
+        _endpoints = new(StringComparer.OrdinalIgnoreCase);
     }
 
-    public void RegisterEndpoint(string path, Func<HttpListenerRequest, HttpListenerResponse, Task> handler)
+    public void RegisterEndpoint(string routeTemplate, Func<HttpListenerRequest, HttpListenerResponse, Dictionary<string, string>, Task> handler)
     {
-        if (string.IsNullOrEmpty(path))
-            throw new ArgumentNullException(nameof(path));
+        if (string.IsNullOrEmpty(routeTemplate))
+            throw new ArgumentNullException(nameof(routeTemplate));
 
         if (handler == null)
             throw new ArgumentNullException(nameof(handler));
 
-        path = path.StartsWith("/") ? path : $"/{path}";
-        _endpoints[path] = handler;
+        routeTemplate = routeTemplate.StartsWith("/") ? routeTemplate : $"/{routeTemplate}";
+        _endpoints[routeTemplate] = handler;
 
-        Logger.Info($"Registered endpoint: {path}");
+        Logger.Info($"Registered endpoint: {routeTemplate}");
     }
 
     public async Task StartAsync()
     {
-        if (_isRunning)
-            return;
+        if (_isRunning) return;
 
         try
         {
@@ -64,8 +61,7 @@ public class HttpServer
 
     public Task StopAsync()
     {
-        if (!_isRunning)
-            return Task.CompletedTask;
+        if (!_isRunning) return Task.CompletedTask;
 
         try
         {
@@ -91,56 +87,58 @@ public class HttpServer
                 var context = await _listener.GetContextAsync();
                 _ = Task.Run(() => HandleRequestAsync(context));
             }
-            catch (HttpListenerException)
-            {
-                break;
-            }
-            catch (ObjectDisposedException)
-            {
-                break;
-            }
+            catch (HttpListenerException) { break; }
+            catch (ObjectDisposedException) { break; }
             catch (Exception ex)
             {
                 Logger.Error($"Error processing request: {ex.Message}");
             }
         }
     }
-    
+
     private async Task HandleRequestAsync(HttpListenerContext context)
     {
-        string method = context.Request.HttpMethod;
-        string path = context.Request.Url.AbsolutePath;
+        var request = context.Request;
+        var response = context.Response;
+        string method = request.HttpMethod;
+        string path = request.Url.AbsolutePath;
 
         try
         {
-            var request = context.Request;
-            var response = context.Response;
+            foreach (var kvp in _endpoints)
+            {
+                var routeTemplate = kvp.Key;
+                var handler = kvp.Value;
 
-            if (_endpoints.TryGetValue(path, out var handler))
-            {
-                await handler(request, response);
-            }
-            else
-            {
-                response.StatusCode = (int)HttpStatusCode.NotFound;
-                response.Close();
+                if (RouteMatcher.TryMatch(routeTemplate, path, out var routeParams))
+                {
+                    await handler(request, response, routeParams);
+                    LogRequest(method, path, response.StatusCode);
+                    return;
+                }
             }
 
-            if (!path.Equals("/favicon.ico", StringComparison.OrdinalIgnoreCase))
-            {
-                Logger.Info($"Received request: {method} {path} - {response.StatusCode}");
-            }
+            response.StatusCode = (int)HttpStatusCode.NotFound;
+            response.Close();
+            LogRequest(method, path, response.StatusCode);
         }
         catch (Exception ex)
         {
-            Logger.Error($"Error handling request: {ex.Message}");
+            Logger.Error($"Error handling request: {ex}");
             try
             {
-                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                context.Response.Close();
+                response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                response.Close();
             }
-            catch {  }
+            catch { }
         }
     }
 
+    private void LogRequest(string method, string path, int statusCode)
+    {
+        if (!path.Equals("/favicon.ico", StringComparison.OrdinalIgnoreCase))
+        {
+            Logger.Info($"Received request: {method} {path} - {statusCode}");
+        }
+    }
 }
