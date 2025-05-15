@@ -54,7 +54,7 @@ public class HttpServer
         }
         catch (Exception ex)
         {
-            Logger.Error($"Failed to start HTTP server: {ex.Message}");
+            Logger.Error($"Failed to start HTTP server: {ex.Message} | {ex.StackTrace}");
             throw;
         }
     }
