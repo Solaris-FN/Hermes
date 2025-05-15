@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 
-namespace Hermes.Classes;
+namespace Hermes.Global.Definitions;
 
 public class AuthResponse
 {

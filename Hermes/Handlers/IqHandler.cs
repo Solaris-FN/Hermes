@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using System.Xml.Linq;
 using Fleck;
-using Hermes.Classes;
+using Hermes.Api;
 using Hermes.Global;
 using Hermes.Global.Definitions;
 using Hermes.Helpers;
@@ -143,8 +143,11 @@ public class IqHandler
                         Logger.Error($"Friend with AccountId '{friend.Id}' not found.");
                         continue;
                     }
+                    
 
                     var friendClient = friendClientPair.Value;
+                    if (friendClient == null)
+                        continue;
                     var lastPresence = friendClient.LastPresenceUpdate ?? new LastPresenceUpdate();
 
                     try

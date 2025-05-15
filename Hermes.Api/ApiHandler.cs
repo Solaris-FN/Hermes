@@ -1,9 +1,9 @@
 ﻿using System.Text.Json;
+using Hermes.Api.Utilities;
 using Hermes.Global;
-using Hermes.Utilities;
 using Newtonsoft.Json;
 
-namespace Hermes.Handlers;
+namespace Hermes.Api;
 
 public class ApiHandler
 {

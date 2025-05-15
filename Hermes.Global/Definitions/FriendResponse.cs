@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Hermes.Classes;
+namespace Hermes.Global.Definitions;
 
 public class FriendResponse
 {

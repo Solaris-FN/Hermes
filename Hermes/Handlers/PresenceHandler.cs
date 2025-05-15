@@ -1,6 +1,6 @@
 ﻿using System.Xml.Linq;
 using Fleck;
-using Hermes.Classes;
+using Hermes.Api;
 using Hermes.Global;
 using Hermes.Global.Definitions;
 using Hermes.Utilities;
@@ -66,6 +66,8 @@ public class PresenceHandler
             }
 
             var friendClient = friendClientPair.Value;
+            if (friendClient == null)
+                continue;
             
             var friendMessage = new XElement(clientNamespace + "presence",
                 new XAttribute("to", friendClient.Jid),

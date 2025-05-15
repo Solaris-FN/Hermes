@@ -1,6 +1,5 @@
 ﻿using System.Xml.Linq;
 using Fleck;
-using Hermes.Classes;
 using Hermes.Global;
 using Hermes.Global.Definitions;
 
@@ -19,6 +18,8 @@ public class SendMessageToClient
                 return false;
             
             var targetClient = targetPair.Value;
+            if (targetClient == null)
+                return false;
 
             var messageXml = new XElement("message",
                 new XAttribute("from", client.Jid),

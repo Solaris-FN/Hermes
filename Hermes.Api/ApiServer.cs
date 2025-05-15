@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text;
+using System.Text.Json;
 using System.Xml.Linq;
 using Hermes.Api.Utilities;
 using Hermes.Global;
@@ -89,6 +90,48 @@ public class ApiServer
                 await WriteJsonResponse(res, "{ \"status\": \"Forwarded\" }");
             });
 
+        _httpServer.RegisterEndpoint("/h/v1/xmpp/friends/status/{accountId}",
+            async (req, res, routeParams) =>
+            {
+                var accountIdExists = routeParams.TryGetValue("accountId", out var accountId);
+                if (!accountIdExists)
+                {
+                    await WriteErrorResponse(res, HttpStatusCode.BadRequest, "Missing route parameter.");
+                    return;
+                }
+
+                var endpoint = $"/h/v1/friends?accountId={Uri.EscapeDataString(accountId)}";
+                var friends = await ApiHandler.GetAsync<List<FriendResponse>>(endpoint);
+
+                if (friends == null || !friends.Any())
+                {
+                    await WriteErrorResponse(res, HttpStatusCode.NotFound,
+                        $"No friends found for user '{accountId}'.");
+                    return;
+                }
+
+                var result = new Dictionary<string, LastPresenceUpdate>();
+
+                foreach (var friend in friends.Where(f => f.Status == "ACCEPTED"))
+                {
+                    var friendClientPair = HermesGlobal._clients.FirstOrDefault(x => x.Value.AccountId == friend.Id);
+                    if (friendClientPair.Equals(default(KeyValuePair<Guid, SocketClientDefinition>)))
+                    {
+                        Logger.Error($"Friend with AccountId '{friend.Id}' not found.");
+                        continue;
+                    }
+
+                    var friendClient = friendClientPair.Value;
+                    if (friendClient == null)
+                        continue;
+
+                    result[friend.Id] = friendClient.LastPresenceUpdate;
+                }
+
+                var json = JsonSerializer.Serialize(result);
+                await WriteJsonResponse(res, json);
+            });
+        
         _httpServer.RegisterEndpoint("/h/v1/xmpp/presence/forward/{senderId}/{receiverId}/{isOffline}",
             async (req, res, routeParams) =>
             {

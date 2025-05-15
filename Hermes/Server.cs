@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Fleck;
-using Hermes.Classes;
 using Hermes.Events;
 using Hermes.Global;
 using Hermes.Global.Definitions;
