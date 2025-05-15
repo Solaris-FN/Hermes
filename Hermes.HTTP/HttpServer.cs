@@ -103,6 +103,18 @@ public class HttpServer
         string method = request.HttpMethod;
         string path = request.Url.AbsolutePath;
 
+        response.AddHeader("Access-Control-Allow-Origin", "*");
+        response.AddHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        response.AddHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+        if (method == "OPTIONS")
+        {
+            response.StatusCode = (int)HttpStatusCode.OK;
+            response.Close();
+            LogRequest(method, path, response.StatusCode);
+            return;
+        }
+        
         try
         {
             foreach (var kvp in _endpoints)
